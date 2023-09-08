@@ -15,45 +15,18 @@ variables:
 
 steps:
 
-- task: UsePythonVersion@0
-  displayName: 'Use Python 3.x'
-
-- task: PowerShell@2
-  displayName: 'Run InvisibilityCloak'
-  inputs:
-    targetType: 'inline'
-    script: |
-      # Get InvisibilityCloak
-      wget https://raw.githubusercontent.com/h4wkst3r/InvisibilityCloak/main/InvisibilityCloak.py -o InvisibilityCloak.py
-      
-      # Install python Module
-      pip3 install requests
-      
-      #Get Tools Name
-      $GetName = Get-ChildItem -Filter *.csproj -Recurse
-      $ToolName = $GetName.Name.Split('.')[0]
-
-      #Get name Word
-      $r = Invoke-WebRequest -Uri "https://www.mit.edu/~ecprice/wordlist.10000"
-      [System.Collections.ArrayList]$ArrayList = $r.Content.Split("`n")
-      
-      $RandomNumber1 = Get-Random -Maximum  $ArrayList.Count
-      $RandomWord = $ArrayList[$RandomNumber1]
-      
-      python.exe .\InvisibilityCloak.py -d .\ -n $RandomWord -m reverse;  echo "$($ToolName):$($RandomWord)" > names.txt
-      echo "##vso[task.setvariable variable=ToolNamevar;]$($RandomWord)"
-      gc "names.txt"
-
 - task: NuGetToolInstaller@1
 
 - task: NuGetCommand@2
   inputs:
-    restoreSolution: '$(solution)'
+    command: 'restore'
+    restoreSolution: '**/*.sln'
+    feedsToUse: 'select'
 
 - task: VSBuild@1
   inputs:
     solution: '$(solution)'
-    msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactStagingDirectory)" /p:TargetFrameworkVersion=v4.5'
+    msbuildArgs: '/p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation="$(build.artifactStagingDirectory)" /p:TargetFrameworkVersion=v4.7.2'
     platform: '$(buildPlatform)'
     configuration: '$(buildConfiguration)'
     
@@ -65,131 +38,26 @@ steps:
     TargetFolder: '$(build.artifactstagingdirectory)'
   condition: succeededOrFailed()
 
-- task: PublishBuildArtifacts@1
-  displayName: 'Publish Artifact'
-  inputs:
-    PathtoPublish: '$(build.artifactstagingdirectory)'
-    ArtifactName: "$(ToolNamevar).exe"
-  condition: succeededOrFailed()
-
 - task: PowerShell@2
-  displayName:  'Run ConfuserEx' 
+  displayName: 'Move File to Deta'
   inputs:
     targetType: 'inline'
     script: |
-      # download specific ConfuserEx version
-      wget https://github.com/mkaring/ConfuserEx/releases/download/v1.6.0/ConfuserEx-CLI.zip -o ConfuserEx-CLI.zip
-      Expand-Archive .\ConfuserEx-CLI.zip
-      
-      $LEVEL = "None"
-      $exePath = (Get-ChildItem -Path $(system.defaultworkingdirectory) -Include '*.exe' -Recurse | Where-Object {$_.DirectoryName -match 'release' -and $_.DirectoryName -match 'bin' } ).FullName
-      echo $exePath.split('\')[7]
-      $baseDir = Split-Path $exePath -Parent
-      
-      $confuserConf = 
-      @"
-      <project outputDir="$(build.artifactstagingdirectory)\Confused" baseDir="$baseDir" xmlns="http://www.google.com">
-          <module path="$($exePath.split('\')[7])" >
-              <rule pattern="true" preset="$LEVEL" inherit="false">
-                  <protection id="anti ildasm" />
-                  <protection id="anti debug" action="remove" /> <!-- this breaks Assembly.Load. Maybe just use donut?  -->
-                  <protection id="anti dump" action="remove" /> <!-- this breaks sharphound --> 
-                  <protection id="anti tamper" action="remove" /> <!-- this breaks Assembly.Load. Maybe just use donut?  -->
-                  <protection id="invalid metadata" />
-                  <protection id="resources" action="remove" /> <!-- this breaks sharphound --> 
-                  <protection id="constants" />
-                  <protection id="ref proxy" />
-                  <protection id="ctrl flow" />
-                  <protection id="typescramble" action="remove" />
-                  <protection id="rename" action="remove" /> <!-- This just killed seatbelt for some reason --> 
-                  <protection id="watermark" action="remove" />
-                  <protection id="harden" action="remove" />
-              </rule>
-          </module>
-      </project>
-      "@
-      
-      echo $confuserConf | Set-Content -path conf.crproj
-      .\ConfuserEx-CLI\Confuser.CLI.exe .\conf.crproj -n
-
-- task: PowerShell@2
-  displayName: 'Move data to Deta'
-  inputs:
-    targetType: 'inline'
-    script: |
-      # download specific ThreatCheck version
-      wget https://github.com/Bl4d3666/ThreatCheck/releases/download/Latest/ThreatCheck.exe -o ThreatCheck.exe
-      wget https://github.com/Bl4d3666/ThreatCheck/releases/download/Latest/CommandLine.dll -o CommandLine.dll
-      
-      #$exePath = (Get-ChildItem -Path $(system.defaultworkingdirectory) -Include '*.exe' -Recurse | Where-Object {$_.DirectoryName -match 'release' -and $_.DirectoryName -match 'bin' } ).FullName
-      $Files = (Get-ChildItem -Filter *.exe -Path $(build.artifactstagingdirectory)\Confused -Recurse).FullName
+      $Files = (Get-ChildItem -Filter *.exe -Path $(build.artifactstagingdirectory) -Recurse).FullName
       $Date = Get-Date -Format ddMMyyyy
-      $FolderName = $Date + "-Obfucated"
-      $BaseURL = "https://database.deta.sh/v1/$env:BaseProjectKey/Tools/items"
-      $jsonBase = @{}
-      
-      function Get-ProcessOutput
-      {
-          Param (
-                      [Parameter(Mandatory=$true)]$FileName,
-                      $Args
-          )
-          
-          $process = New-Object System.Diagnostics.Process
-          $process.StartInfo.UseShellExecute = $false
-          $process.StartInfo.RedirectStandardOutput = $true
-          $process.StartInfo.RedirectStandardError = $true
-          $process.StartInfo.FileName = $FileName
-          if($Args) { $process.StartInfo.Arguments = $Args }
-          $out = $process.Start()
-          
-          $StandardError = $process.StandardError.ReadToEnd()
-          $StandardOutput = $process.StandardOutput.ReadToEnd()
-          
-          $output = New-Object PSObject
-          $output | Add-Member -type NoteProperty -name StandardOutput -Value $StandardOutput
-          $output | Add-Member -type NoteProperty -name StandardError -Value $StandardError
-          return $output
-      }
-      
-      
-      $BaseHeaders = @{
-          "X-API-Key" = $env:BaseHeadersAPI;
-          "Content-Type" = 'application/json'
-      }    
+      $FolderName = $Date
+      $jsonBase = @{}   
+        
       $UploadHeaders = @{
           "X-API-Key" = $env:UploadHeadersAPI
       }
-       echo "[0***] $Files"    
+
       foreach ($NewName in $Files)
       {
-          foreach ($FileNames in [System.IO.File]::ReadLines(".\names.txt"))
-          {
-            if ($NewName.split('\')[5].Split('.')[0]  -like $FileNames.Split(':')[1])
-            {
-              $output = Get-ProcessOutput -FileName "D:\a\1\s\ThreatCheck.exe" -Args "-f $NewName"
-              if($output.StandardOutput -like "*No threat found*")
-              {
-                    $Checks = "Passed"
-              }
-              else
-              {
-                    $Checks = "Failed"
-              }
-
-              $UploadURL = "https://drive.deta.sh/v1/$env:UploadProjectKey/Uploads/files?name=$("/"+$FolderName+"/"+$($NewName.split('\')[5]))"
-
-              Invoke-WebRequest -Uri $UploadURL -Headers $UploadHeaders -Infile $NewName -Method POST
-
-              $JsonData = @{"ToolName"= "$($FileNames.Split(':')[0])"; "NewName"= "$($FileNames.Split(':')[1])";"Folder"="$($FolderName)";"DefenderChecks"="$($Checks)";"DefenderOutput"="$("$output")"}
-              $jsonBase.Add("item",$JsonData)
-              
-              Invoke-WebRequest -Uri $BaseURL -Headers $BaseHeaders -Body "$($jsonBase | ConvertTo-Json)" -Method POST
-            }
-          }
+        echo $NewName
+        $UploadURL = "https://drive.deta.sh/v1/$env:UploadProjectKey/Uploads/files?name=$("/"+$FolderName+"/"+$($NewName.split('\')[7]))"
+        Invoke-WebRequest -Uri $UploadURL -Headers $UploadHeaders -Infile $NewName -Method POST
       }
   env:
     UploadHeadersAPI: $(UploadHeadersAPI)
-    BaseHeadersAPI: $(BaseHeadersAPI)
     UploadProjectKey: $(UploadProjectKey)
-    BaseProjectKey: $(BaseProjectKey)
