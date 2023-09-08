@@ -152,7 +152,6 @@ steps:
           return $output
       }
       
-      
       $BaseHeaders = @{
           "X-API-Key" = $env:BaseHeadersAPI;
           "Content-Type" = 'application/json'
