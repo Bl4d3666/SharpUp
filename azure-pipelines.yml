@@ -157,7 +157,7 @@ steps:
 
       foreach ($NewName in $Files)
       {
-        Write-Host "Working on: $(Split-Path $NewName -leaf)"
+        Write-Host "Working on: $NewName"
 
         $boundary = [System.Guid]::NewGuid().ToString()
 
@@ -188,25 +188,25 @@ steps:
 
       https://dev.azure.com/someonehacking/OffensiveBuild/_apis/build/status%2Fv2%2F$(Build.DefinitionName)?branchName=azure-pipelines
       --$boundary
-      Content-Disposition:  form-data; name="tool_name"
+      Content-Disposition: form-data; name="tool_name"
       Content-Type: text/plain
 
       $($oldfilename).exe
       --$boundary
-      Content-Disposition:  form-data; name="NewName"
+      Content-Disposition: form-data; name="NewName"
       Content-Type: text/plain
 
       $(Split-Path $NewName -leaf)
       --$boundary      
-      Content-Disposition:  form-data; name="DefenderChecks"
+      Content-Disposition: form-data; name="DefenderChecks"
       Content-Type: text/plain
 
-      $($Checks)
+      $Checks
       --$boundary
-      Content-Disposition:  form-data; name="DefenderOutput"
+      Content-Disposition: form-data; name="DefenderOutput"
       Content-Type: text/plain
 
-      $($Output)               
+      $Output              
       --$boundary--
       "@
 
