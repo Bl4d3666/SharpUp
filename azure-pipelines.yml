@@ -40,9 +40,8 @@ steps:
       $RandomNumber1 = Get-Random -Maximum  $ArrayList.Count
       $RandomWord = $ArrayList[$RandomNumber1]
       
-      python.exe .\InvisibilityCloak.py -d .\ -n $RandomWord -m reverse;  echo "$($ToolName):$($RandomWord)" > names.txt
+      python.exe .\InvisibilityCloak.py -d .\ -n $RandomWord -m reverse;  echo "$($ToolName):$($RandomWord)" > D:\a\1\s\names.txt
       echo "##vso[task.setvariable variable=ToolNamevar;]$($RandomWord)"
-      echo pwd
       gc "names.txt"
 
 - task: NuGetToolInstaller@1
