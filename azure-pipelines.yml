@@ -186,7 +186,7 @@ steps:
       Content-Disposition:  form-data; name="tool_name"
       Content-Type: text/plain
 
-      $FileName
+      $(FileName)
       --$boundary
       Content-Disposition:  form-data; name="NewName"
       Content-Type: text/plain
