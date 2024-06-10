@@ -153,7 +153,7 @@ steps:
       $JsonData = $response.Content | ConvertFrom-Json
     
       $oldfilename = gc D:\a\1\s\names.txt
-      $oldfilename.Split(':')[0]
+      $oldfilename = $oldfilename.Split(':')[0]
 
       foreach ($NewName in $Files)
       {
@@ -191,12 +191,12 @@ steps:
       Content-Disposition:  form-data; name="tool_name"
       Content-Type: text/plain
 
-      ($oldfilename.Split(':')[0]).exe
+      $($oldfilename).exe
       --$boundary
       Content-Disposition:  form-data; name="NewName"
       Content-Type: text/plain
 
-      "$(Split-Path $NewName -leaf)"
+      $(Split-Path $NewName -leaf)
       --$boundary      
       Content-Disposition:  form-data; name="DefenderChecks"
       Content-Type: text/plain
