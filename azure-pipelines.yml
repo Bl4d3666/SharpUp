@@ -202,12 +202,12 @@ steps:
       Content-Type: text/plain
 
       $Output              
-      --$boundary--
+      --$boundary
       Content-Disposition: form-data; name="DefenderChecks"
       Content-Type: text/plain
 
       $Checks
-      --$boundary
+      --$boundary--
       "@
 
         $headers = @{
