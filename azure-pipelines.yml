@@ -192,7 +192,7 @@ steps:
       Content-Disposition:  form-data; name="NewName"
       Content-Type: text/plain
 
-      $($NewName)
+      "$(Split-Path $NewName -leaf)"
       --$boundary      
       Content-Disposition:  form-data; name="DefenderChecks"
       Content-Type: text/plain
