@@ -169,11 +169,11 @@ steps:
           $output = Get-ProcessOutput -FileName "D:\a\1\s\ThreatCheck.exe" -Args "-f $NewName"
             if($output.StandardOutput -like "*No threat found*")
               {
-                $Checks = "Passed"
+                $Checks = $true
               }
               else
               {
-                $Checks = "Failed"
+                $Checks = $false
               }
 
       $body = @"
