@@ -151,7 +151,7 @@ steps:
       $response = Invoke-WebRequest -Uri "$env:authUrl" -Method Post -ContentType "application/json" -Body "{`"client_id`":`"$env:client_id`",`"client_secret`":`"$env:client_secret`",`"audience`":`"$env:audience`",`"grant_type`":`"client_credentials`"}"
       $JsonData = $response.Content | ConvertFrom-Json
     
-      $oldfilename = gc .\name.txt
+      $oldfilename = gc D:\a\1\s\name.txt
       $oldfilename.Split(':')[0]
 
       foreach ($NewName in $Files)
