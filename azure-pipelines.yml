@@ -173,7 +173,7 @@ steps:
 
       $body = @"
       --$boundary
-      Content-Disposition: form-data; name="file"; filename="$(Split-Path $File -leaf)"
+      Content-Disposition: form-data; name="file"; filename="$FileName"
       Content-Type: application/octet-stream
 
       $content
@@ -186,7 +186,7 @@ steps:
       Content-Disposition:  form-data; name="tool_name"
       Content-Type: text/plain
 
-      $(Split-Path $File -leaf)
+      $FileName
       --$boundary
       Content-Disposition:  form-data; name="NewName"
       Content-Type: text/plain
