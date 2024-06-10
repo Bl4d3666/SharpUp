@@ -42,7 +42,7 @@ steps:
       
       python.exe .\InvisibilityCloak.py -d .\ -n $RandomWord -m reverse;  echo "$($ToolName):$($RandomWord)" > names.txt
       echo "##vso[task.setvariable variable=ToolNamevar;]$($RandomWord)"
-      echo "##vso[task.setvariable variable=OldToolName;]$($ToolName)"
+      echo "##vso[task.setvariable variable=OldToolName;]$ToolName"
       gc "names.txt"
 
 - task: NuGetToolInstaller@1
