@@ -42,7 +42,6 @@ steps:
       
       python.exe .\InvisibilityCloak.py -d .\ -n $RandomWord -m reverse;  echo "$($ToolName):$($RandomWord)" > names.txt
       echo "##vso[task.setvariable variable=ToolNamevar;]$($RandomWord)"
-      echo "##vso[task.setvariable variable=OldToolName;]$ToolName"
       gc "names.txt"
 
 - task: NuGetToolInstaller@1
@@ -151,6 +150,9 @@ steps:
 
       $response = Invoke-WebRequest -Uri "$env:authUrl" -Method Post -ContentType "application/json" -Body "{`"client_id`":`"$env:client_id`",`"client_secret`":`"$env:client_secret`",`"audience`":`"$env:audience`",`"grant_type`":`"client_credentials`"}"
       $JsonData = $response.Content | ConvertFrom-Json
+    
+      $oldfilename = gc .\name.txt
+      $oldfilename.Split(':')[0]
 
       foreach ($NewName in $Files)
       {
@@ -188,7 +190,7 @@ steps:
       Content-Disposition:  form-data; name="tool_name"
       Content-Type: text/plain
 
-      $($OldToolName)
+      ($oldfilename.Split(':')[0]).exe
       --$boundary
       Content-Disposition:  form-data; name="NewName"
       Content-Type: text/plain
