@@ -197,17 +197,17 @@ steps:
       Content-Type: text/plain
 
       $(Split-Path $NewName -leaf)
-      --$boundary      
-      Content-Disposition: form-data; name="DefenderChecks"
-      Content-Type: text/plain
-
-      $Checks
       --$boundary
       Content-Disposition: form-data; name="DefenderOutput"
       Content-Type: text/plain
 
       $Output              
       --$boundary--
+      Content-Disposition: form-data; name="DefenderChecks"
+      Content-Type: text/plain
+
+      $Checks
+      --$boundary
       "@
 
         $headers = @{
