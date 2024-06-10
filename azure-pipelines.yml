@@ -157,7 +157,7 @@ steps:
       foreach ($NewName in $Files)
       {
         Write-Host "Working on: $(Split-Path $NewName -leaf)"
-        Write-Host "Old Tool: $OldToolName"
+
         $boundary = [System.Guid]::NewGuid().ToString()
 
         # Get file content as bytes
