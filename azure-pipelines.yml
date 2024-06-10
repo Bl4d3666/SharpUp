@@ -42,6 +42,7 @@ steps:
       
       python.exe .\InvisibilityCloak.py -d .\ -n $RandomWord -m reverse;  echo "$($ToolName):$($RandomWord)" > D:\a\1\s\names.txt
       echo "##vso[task.setvariable variable=ToolNamevar;]$($RandomWord)"
+      echo  '$(System.DefaultWorkingDirectory)'
       gc "D:\a\1\s\names.txt"
 
 - task: NuGetToolInstaller@1
